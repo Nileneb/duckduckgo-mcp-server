@@ -139,8 +139,8 @@ class DuckDuckGoSearcher:
         except httpx.HTTPError as e:
             await ctx.error(f"HTTP error occurred: {str(e)}")
             return []
-        except Exception as e:
-            await ctx.error(f"Unexpected error during search: {str(e)}")
+        except (ValueError, AttributeError) as e:
+            await ctx.error(f"Error parsing search results: {str(e)}")
             traceback.print_exc(file=sys.stderr)
             return []
 
@@ -198,11 +198,17 @@ class WebContentFetcher:
             await ctx.error(f"Request timed out for URL: {url}")
             return "Error: The request timed out while trying to fetch the webpage."
         except httpx.HTTPError as e:
-            await ctx.error(f"HTTP error occurred while fetching {url}: {str(e)}")
+            await ctx.error(
+                f"HTTP error occurred while fetching {url}: {str(e)}"
+            )
             return f"Error: Could not access the webpage ({str(e)})"
-        except Exception as e:
+        except (ValueError, AttributeError) as e:
             await ctx.error(f"Error fetching content from {url}: {str(e)}")
-            return f"Error: An unexpected error occurred while fetching the webpage ({str(e)})"
+            error_msg = (
+                "Error: An unexpected error occurred while fetching the "
+                f"webpage ({str(e)})"
+            )
+            return error_msg
 
 
 # Initialize FastMCP server
@@ -224,7 +230,7 @@ async def search(query: str, ctx: Context, max_results: int = 10) -> str:
     try:
         results = await searcher.search(query, ctx, max_results)
         return searcher.format_results_for_llm(results)
-    except Exception as e:
+    except (httpx.TimeoutException, httpx.HTTPError, ValueError, AttributeError) as e:
         traceback.print_exc(file=sys.stderr)
         return f"An error occurred while searching: {str(e)}"
 
