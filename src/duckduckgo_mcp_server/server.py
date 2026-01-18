@@ -171,7 +171,7 @@ class WebContentFetcher:
             soup = BeautifulSoup(response.text, "html.parser")
 
             # Remove script and style elements
-            for element in soup(["script", "style", "nav", "header", "footer"]):
+            for element in soup(["script", "style", "nav", "div", "head", "body", "header", "class", ".js", "font", "Icon","link", "href", "footer", "meta", "svg", "png", "container", "Hero Header", "hero-"]):
                 element.decompose()
 
             # Get the text content
