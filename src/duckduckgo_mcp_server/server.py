@@ -15,10 +15,12 @@ import json
 from pathlib import Path
 import ipaddress
 import socket
-
+import contextlib
+from starlette.applications import Starlette
+from starlette.routing import Mount
 
 # Config directory for persistent policy file
-CONFIG_DIR = Path.home() / ".duckduckgo-mcp"
+CONFIG_DIR = Path.home() / ".duckduckgo-mcp-server"
 POLICY_FILE = CONFIG_DIR / "policy.json"
 
 # DNS cache TTL in seconds
@@ -716,6 +718,16 @@ async def reload_policy(ctx: Context) -> str:
     await ctx.info("Reloaded access policy from file")
     return f"Policy reloaded from {POLICY_FILE}"
 
+@contextlib.asynccontextmanager
+async def lifespan(app: Starlette):
+    async with mcp.session_manager.run():
+        yield
+
+# MCP Streamable-HTTP als ASGI-App mounten (Endpoint bleibt standardmaessig /mcp)
+http_app = Starlette(
+    routes=[Mount("/", app=mcp.streamable_http_app())],
+    lifespan=lifespan,
+)
 
 def main():
     mcp.run()

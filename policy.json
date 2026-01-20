@@ -1,0 +1,10 @@
+{
+    "DEFAULT_POLICY": {
+        "allow_domains": [],
+        "deny_domains": [],
+        "allow_url_patterns": [],
+        "deny_url_patterns": [],
+        "block_private_ips": "false",
+        "max_redirects": 5
+    }
+}
